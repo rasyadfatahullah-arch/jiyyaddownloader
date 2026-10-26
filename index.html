@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080d">
+<title>JIYYAD TOOLS - Video Downloader</title>
+<meta name="description" content="Download video TikTok, Instagram, X, YouTube, Facebook dan lainnya. By JIYYAD TOOLS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080d;
+  --card:rgba(255,255,255,.04);
+  --line:rgba(255,255,255,.1);
+  --text:#f2f4f8;
+  --muted:#8b92a8;
+  --a:#22d3ee;
+  --b:#8b5cf6;
+  --wa:#25d366;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(50% 40% at 15% 0%,rgba(139,92,246,.22),transparent 70%),
+    radial-gradient(45% 40% at 90% 100%,rgba(34,211,238,.16),transparent 70%);
+}
+#fx{position:fixed;inset:0;z-index:300;pointer-events:none}
+.grad{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ===== Layar loading ===== */
+.intro{
+  position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:var(--bg);
+  transition:opacity .6s,visibility .6s;
+}
+.intro.done{opacity:0;visibility:hidden}
+.intro-in{width:min(320px,80vw);text-align:center}
+.intro h1{font-family:'Space Grotesk',sans-serif;font-size:32px;letter-spacing:6px;font-weight:700;animation:fadeUp .8s both}
+.intro small{display:block;margin-top:6px;font-size:12px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;animation:fadeUp .8s .15s both}
+.bar{height:4px;border-radius:99px;background:rgba(255,255,255,.08);margin:34px 0 14px;overflow:hidden}
+.fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--a),var(--b));box-shadow:0 0 14px var(--a)}
+.pct{font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:700;font-variant-numeric:tabular-nums}
+.pct span{font-size:20px;color:var(--muted)}
+.status{margin-top:4px;font-size:12px;color:var(--muted);min-height:16px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}}
+
+/* ===== Popup saluran WA ===== */
+.overlay{
+  position:fixed;inset:0;z-index:150;display:none;place-items:center;padding:18px;
+  background:rgba(4,4,8,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.overlay.show{display:grid;animation:fade .4s}
+.overlay.hide{animation:fadeOut .35s forwards}
+@keyframes fade{from{opacity:0}}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+.popup{
+  width:100%;max-width:360px;text-align:center;padding:26px 20px 22px;border-radius:28px;
+  background:linear-gradient(160deg,#12121c,#0b0b12);border:1px solid var(--line);
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(139,92,246,.18);
+}
+.overlay.show .popup{animation:popIn .7s cubic-bezier(.17,1.1,.3,1.25) both}
+.overlay.hide .popup{animation:popOut .3s forwards}
+@keyframes popIn{0%{opacity:0;transform:scale(.3) translateY(60px)}100%{opacity:1;transform:none}}
+@keyframes popOut{to{opacity:0;transform:scale(.7) translateY(30px)}}
+.popup h2{font-family:'Space Grotesk',sans-serif;font-size:22px;letter-spacing:3px}
+.popup p{margin-top:6px;font-size:13px;color:var(--muted);line-height:1.55}
+
+.orbit-wrap{position:relative;width:260px;height:260px;margin:14px auto 6px}
+.orbit{position:absolute;inset:0;animation:spin 16s linear infinite}
+.orbit::before{ /* cincin tipis */
+  content:"";position:absolute;inset:34px;border-radius:50%;border:1px dashed rgba(255,255,255,.14);
+}
+.slot{
+  position:absolute;left:50%;top:50%;width:0;height:0;
+  transform:rotate(var(--a)) translateX(98px) rotate(calc(-1 * var(--a)));
+}
+.counter{animation:spin 16s linear infinite reverse}
+.pf{
+  position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+  background:#14141f;border:1px solid var(--c);color:var(--c);box-shadow:0 0 16px -2px var(--c);
+  opacity:0;animation:iconPop .6s cubic-bezier(.2,1.5,.4,1) forwards;animation-delay:calc(.3s + var(--i)*.12s);
+}
+.pf svg{width:21px;height:21px;fill:currentColor}
+@keyframes iconPop{from{opacity:0;transform:scale(0) rotate(-180deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.wa{
+  position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;
+  display:grid;place-items:center;text-decoration:none;color:#fff;cursor:pointer;border:none;overflow:hidden;
+  background:var(--wa);box-shadow:0 0 0 0 rgba(37,211,102,.6),0 10px 30px rgba(37,211,102,.4);
+  animation:waPulse 2s infinite;transition:transform .15s;
+}
+.wa:active{transform:scale(.92)}
+.wa svg{width:46px;height:46px;fill:#fff;pointer-events:none}
+@keyframes waPulse{70%{box-shadow:0 0 0 22px rgba(37,211,102,0),0 10px 30px rgba(37,211,102,.4)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0),0 10px 30px rgba(37,211,102,.4)}}
+.join-label{font-weight:600;font-size:15px;margin-top:2px}
+.skip{
+  margin-top:14px;background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:13px;
+  padding:10px 20px;border-radius:12px;cursor:pointer;transition:.2s;
+}
+.skip:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
+
+/* ===== Halaman utama ===== */
+.wrap{position:relative;z-index:2;max-width:640px;margin:0 auto;padding:46px 18px 60px}
+header{text-align:center;margin-bottom:28px}
+.brand{font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,7vw,40px);letter-spacing:5px;font-weight:700}
+.tag{margin-top:6px;font-size:13px;color:var(--muted)}
+.icons{display:flex;justify-content:center;gap:10px;margin:20px 0 26px}
+.icons .pf{position:static;opacity:1;animation:none;width:42px;height:42px;border-color:var(--line);box-shadow:none;color:var(--muted);transition:.25s}
+.icons .pf:hover{color:var(--c);border-color:var(--c);box-shadow:0 0 18px -4px var(--c);transform:translateY(-3px)}
+
+.card{padding:20px;border-radius:22px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.field{display:flex;gap:10px}
+.field input{
+  flex:1;min-width:0;padding:15px 16px;border-radius:14px;font:inherit;font-size:15px;color:#fff;
+  background:rgba(0,0,0,.4);border:1px solid var(--line);outline:none;transition:.2s;
+}
+.field input::placeholder{color:#5d647a}
+.field input:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(34,211,238,.14)}
+.paste{padding:0 16px;border-radius:14px;font:inherit;font-size:13px;font-weight:600;color:var(--a);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.35);cursor:pointer;position:relative;overflow:hidden}
+.btn{
+  position:relative;overflow:hidden;width:100%;margin-top:12px;padding:15px;border:none;border-radius:14px;cursor:pointer;
+  font:inherit;font-weight:600;font-size:15px;letter-spacing:1px;color:#06060a;
+  background:linear-gradient(90deg,var(--a),var(--b));
+  box-shadow:0 8px 28px -8px rgba(139,92,246,.7);transition:transform .15s,box-shadow .2s,filter .2s;
+}
+.btn:hover{filter:brightness(1.1);box-shadow:0 10px 34px -6px rgba(34,211,238,.6)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.65;cursor:progress}
+.btn.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.55);transform:scale(0);animation:ripple .6s ease-out forwards}
+@keyframes ripple{to{transform:scale(1);opacity:0}}
+
+.loader{display:none;margin-top:20px;text-align:center;font-size:13px;color:var(--muted)}
+.loader.show{display:block}
+.ring{width:34px;height:34px;margin:0 auto 8px;border-radius:50%;border:3px solid rgba(255,255,255,.08);border-top-color:var(--a);animation:spin .8s linear infinite}
+.error{display:none;margin-top:16px;padding:12px 14px;border-radius:12px;font-size:14px;color:#fecdd3;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.4)}
+.error.show{display:block;animation:fadeUp .3s}
+.result{display:none;margin-top:18px;animation:fadeUp .45s}
+.result.show{display:block}
+.rcard{border-radius:16px;overflow:hidden;background:rgba(0,0,0,.35);border:1px solid var(--line)}
+.thumb{width:100%;max-height:280px;object-fit:cover;display:block;background:#0d0d16}
+.rbody{padding:14px}
+.rtitle{font-weight:600;font-size:15px;line-height:1.45;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rauthor{margin-top:4px;font-size:12px;color:var(--a)}
+.dls{display:grid;gap:8px;margin-top:12px}
+.dl{
+  position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:13px 15px;border-radius:12px;text-decoration:none;color:var(--text);font-weight:500;font-size:14px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);transition:.2s;
+}
+.dl:hover{border-color:var(--a);background:rgba(34,211,238,.07)}
+.dl:active{transform:scale(.98)}
+.dl svg{width:18px;height:18px;fill:var(--a)}
+footer{margin-top:34px;text-align:center;font-size:12px;color:var(--muted);line-height:1.8}
+footer b{font-family:'Space Grotesk',sans-serif;letter-spacing:2px;color:var(--text)}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+
+<canvas id="fx"></canvas>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></symbol>
+    <symbol id="i-ig" viewBox="0 0 24 24"><path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.3-3.2a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></symbol>
+    <symbol id="i-yt" viewBox="0 0 24 24"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.75-1.77C18.3 5 12 5 12 5s-6.3 0-7.85.43A2.5 2.5 0 0 0 2.4 7.2C2 8.76 2 12 2 12s0 3.24.4 4.8a2.5 2.5 0 0 0 1.75 1.77C5.7 19 12 19 12 19s6.3 0 7.85-.43a2.5 2.5 0 0 0 1.75-1.77C22 15.24 22 12 22 12s0-3.24-.4-4.8zM10 15V9l5.2 3z"/></symbol>
+    <symbol id="i-fb" viewBox="0 0 24 24"><path d="M13.5 22v-8.2h2.76l.41-3.2H13.5V8.56c0-.93.26-1.56 1.59-1.56h1.7V4.14A22.7 22.7 0 0 0 14.3 4c-2.45 0-4.13 1.5-4.13 4.24v2.36H7.4v3.2h2.77V22h3.33z"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 2c.8 0 1.9 1.6 2.4 4H9.6C10.1 6.6 11.2 5 12 5zM7.9 5.8C7.2 6.7 6.7 7.8 6.4 9H4.3a7 7 0 0 1 3.6-3.2zM4.1 11h2.2a15 15 0 0 0 0 2H4.1a7 7 0 0 1 0-2zm.2 4h2.1c.3 1.2.8 2.3 1.5 3.2A7 7 0 0 1 4.3 15zm5.3 0h4.8c-.5 2.4-1.6 4-2.4 4s-1.9-1.6-2.4-4zM9.2 13a13 13 0 0 1 0-2h5.6a13 13 0 0 1 0 2H9.2zm6.8 2h2.1a7 7 0 0 1-3.6 3.2c.7-.9 1.2-2 1.5-3.2zm.3-2a15 15 0 0 0 0-2h2.2a7 7 0 0 1 0 2h-2.2zM16.1 9c-.3-1.2-.8-2.3-1.5-3.2A7 7 0 0 1 17.7 9h-1.6z"/></symbol>
+    <symbol id="i-wa" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 2a8 8 0 1 1-4.2 14.8l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 0 1 12 4zm-3 3.5c-.2 0-.5.1-.7.4-.3.3-.9.9-.9 2.1 0 1.2.9 2.5 1 2.7.2.2 1.8 2.9 4.5 3.9 2.2.8 2.7.7 3.2.6.5 0 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.7-.4-.4-.2-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.6.1-.4-.2-1.2-.4-2.2-1.4-.8-.7-1.3-1.6-1.5-1.9-.1-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4z"/></symbol>
+    <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6V3h2zM4 19h16v2H4z"/></symbol>
+  </defs>
+</svg>
+
+<!-- ===== Loading dengan progres ===== -->
+<div class="intro" id="intro">
+  <div class="intro-in">
+    <h1>JIYYAD <span class="grad">TOOLS</span></h1>
+    <small>Video Downloader</small>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="pct"><b id="pct">0</b><span>%</span></div>
+    <div class="status" id="status">Menyiapkan...</div>
+  </div>
+</div>
+
+<!-- ===== Popup saluran WhatsApp ===== -->
+<div class="overlay" id="overlay">
+  <div class="popup" role="dialog" aria-modal="true" aria-labelledby="pt">
+    <h2 id="pt">JIYYAD <span class="grad">TOOLS</span></h2>
+    <p>Gabung saluran WhatsApp untuk info &amp; update terbaru</p>
+
+    <div class="orbit-wrap">
+      <div class="orbit">
+        <div class="slot" style="--a:0deg"><div class="counter"><div class="pf" style="--c:#ff2d7a;--i:0"><svg><use href="#i-tiktok"/></svg></div></div></div>
+        <div class="slot" style="--a:60deg"><div class="counter"><div class="pf" style="--c:#ff8a3d;--i:1"><svg><use href="#i-ig"/></svg></div></div></div>
+        <div class="slot" style="--a:120deg"><div class="counter"><div class="pf" style="--c:#ffffff;--i:2"><svg><use href="#i-x"/></svg></div></div></div>
+        <div class="slot" style="--a:180deg"><div class="counter"><div class="pf" style="--c:#ff4545;--i:3"><svg><use href="#i-yt"/></svg></div></div></div>
+        <div class="slot" style="--a:240deg"><div class="counter"><div class="pf" style="--c:#4a90ff;--i:4"><svg><use href="#i-fb"/></svg></div></div></div>
+        <div class="slot" style="--a:300deg"><div class="counter"><div class="pf" style="--c:#a3e635;--i:5"><svg><use href="#i-more"/></svg></div></div></div>
+      </div>
+      <a class="wa fxbtn" id="waBtn" href="https://whatsapp.com/channel/0029VbDOUI04NVinhn4Lvw0r" target="_blank" rel="noopener noreferrer" aria-label="Gabung saluran WhatsApp">
+        <svg><use href="#i-wa"/></svg>
+      </a>
+    </div>
+
+    <div class="join-label">Gabung Saluran WhatsApp</div>
+    <button class="skip" id="skipBtn" type="button">Masuk ke website</button>
+  </div>
+</div>
+
+<!-- ===== Halaman utama ===== -->
+<main class="wrap">
+  <header>
+    <h1 class="brand">JIYYAD <span class="grad">TOOLS</span></h1>
+    <div class="tag">Video Downloader &middot; simpel &amp; cepat</div>
+  </header>
+
+  <div class="icons">
+    <div class="pf" style="--c:#ff2d7a" title="TikTok"><svg><use href="#i-tiktok"/></svg></div>
+    <div class="pf" style="--c:#ff8a3d" title="Instagram"><svg><use href="#i-ig"/></svg></div>
+    <div class="pf" style="--c:#ffffff" title="X / Twitter"><svg><use href="#i-x"/></svg></div>
+    <div class="pf" style="--c:#ff4545" title="YouTube"><svg><use href="#i-yt"/></svg></div>
+    <div class="pf" style="--c:#4a90ff" title="Facebook"><svg><use href="#i-fb"/></svg></div>
+    <div class="pf" style="--c:#a3e635" title="Dan lainnya"><svg><use href="#i-more"/></svg></div>
+  </div>
+
+  <section class="card">
+    <form id="form" autocomplete="off">
+      <div class="field">
+        <input id="url" type="url" inputmode="url" placeholder="Tempel link video di sini..." required>
+        <button type="button" class="paste fxbtn" id="pasteBtn">Paste</button>
+      </div>
+      <button class="btn fxbtn" id="goBtn" type="submit">DOWNLOAD</button>
+    </form>
+
+    <div class="loader" id="loader"><div class="ring"></div>Mengambil video...</div>
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+      <div class="rcard">
+        <img class="thumb" id="thumb" alt="" hidden>
+        <div class="rbody">
+          <div class="rtitle" id="rtitle"></div>
+          <div class="rauthor" id="rauthor"></div>
+          <div class="dls" id="dls"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Dibuat oleh <b>JIYYAD TOOLS</b><br>
+    Gunakan dengan bijak. Hormati hak cipta pembuat konten.
+  </footer>
+</main>
+
+<script>
+(function(){
+  /* ===== Partikel saat tombol ditekan ===== */
+  var cv = document.getElementById('fx'), cx = cv.getContext('2d'), parts = [], running = false;
+  function size(){ cv.width = innerWidth; cv.height = innerHeight; }
+  size(); addEventListener('resize', size);
+  var COLORS = ['#22d3ee','#8b5cf6','#ffffff','#25d366','#f0abfc'];
+
+  function burst(x, y, n){
+    for (var i = 0; i < n; i++){
+      var a = Math.random() * 6.283, s = 2 + Math.random() * 6;
+      parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.2,life:1,decay:.014+Math.random()*.02,r:1.6+Math.random()*3,c:COLORS[(Math.random()*COLORS.length)|0]});
+    }
+    if (!running){ running = true; requestAnimationFrame(loop); }
+  }
+  function loop(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    cx.globalCompositeOperation = 'lighter';
+    for (var i = parts.length-1; i >= 0; i--){
+      var p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += .13; p.vx *= .99; p.life -= p.decay;
+      if (p.life <= 0){ parts.splice(i,1); continue; }
+      cx.globalAlpha = p.life; cx.shadowBlur = 12; cx.shadowColor = p.c; cx.fillStyle = p.c;
+      cx.beginPath(); cx.arc(p.x,p.y,p.r,0,6.283); cx.fill();
+    }
+    cx.globalAlpha = 1; cx.shadowBlur = 0;
+    if (parts.length) requestAnimationFrame(loop); else { running = false; cx.clearRect(0,0,cv.width,cv.height); }
+  }
+  function btnFx(btn, e){
+    var r = btn.getBoundingClientRect();
+    var px = e && e.clientX ? e.clientX : r.left + r.width/2;
+    var py = e && e.clientY ? e.clientY : r.top + r.height/2;
+    var d = Math.max(r.width, r.height) * 2;
+    var rp = document.createElement('span');
+    rp.className = 'ripple';
+    rp.style.cssText = 'width:'+d+'px;height:'+d+'px;left:'+(px-r.left-d/2)+'px;top:'+(py-r.top-d/2)+'px';
+    btn.appendChild(rp); setTimeout(function(){ rp.remove(); }, 650);
+    burst(px, py, 38);
+    if (navigator.vibrate) navigator.vibrate(20);
+  }
+  document.addEventListener('pointerdown', function(e){
+    var b = e.target.closest('.fxbtn, .dl, .skip');
+    if (b) btnFx(b, e);
+  });
+
+  /* ===== Loading progres -> popup ===== */
+  var intro = document.getElementById('intro'),
+      overlay = document.getElementById('overlay'),
+      fill = document.getElementById('fill'),
+      pct = document.getElementById('pct'),
+      status = document.getElementById('status');
+  var steps = [[0,'Menyiapkan...'],[30,'Memuat tampilan...'],[60,'Menghubungkan server...'],[90,'Hampir selesai...'],[100,'Selesai!']];
+  var val = 0, start = performance.now(), DURATION = 2800;
+
+  function tick(now){
+    var t = Math.min((now - start) / DURATION, 1);
+    var eased = t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;   // easeInOutQuad
+    val = Math.round(eased * 100);
+    fill.style.width = val + '%';
+    pct.textContent = val;
+    for (var i = steps.length-1; i >= 0; i--){ if (val >= steps[i][0]){ status.textContent = steps[i][1]; break; } }
+    if (t < 1) requestAnimationFrame(tick);
+    else {
+      setTimeout(function(){
+        intro.classList.add('done');
+        overlay.classList.add('show');
+        setTimeout(function(){ burst(innerWidth/2, innerHeight/2, 60); }, 500);
+        setTimeout(function(){ intro.remove(); }, 700);
+      }, 450);
+    }
+  }
+  requestAnimationFrame(tick);
+
+  function closePopup(){
+    overlay.classList.add('hide');
+    setTimeout(function(){ overlay.remove(); }, 350);
+  }
+  document.getElementById('skipBtn').addEventListener('click', function(){ setTimeout(closePopup, 250); });
+  document.getElementById('waBtn').addEventListener('click', function(){ setTimeout(closePopup, 600); });
+
+  /* ===== Downloader ===== */
+  var form = document.getElementById('form'), input = document.getElementById('url'),
+      goBtn = document.getElementById('goBtn'), loader = document.getElementById('loader'),
+      errBox = document.getElementById('error'), result = document.getElementById('result'),
+      thumb = document.getElementById('thumb'), rtitle = document.getElementById('rtitle'),
+      rauthor = document.getElementById('rauthor'), dls = document.getElementById('dls');
+
+  document.getElementById('pasteBtn').addEventListener('click', async function(){
+    try { var t = await navigator.clipboard.readText(); if (t) input.value = t.trim(); }
+    catch(e){ input.focus(); }
+  });
+
+  function showError(msg){
+    errBox.textContent = msg; errBox.classList.add('show');
+    goBtn.classList.remove('shake'); void goBtn.offsetWidth; goBtn.classList.add('shake');
+  }
+
+  form.addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var link = input.value.trim();
+    errBox.classList.remove('show'); result.classList.remove('show');
+    if (!link) return;
+    goBtn.disabled = true; loader.classList.add('show');
+    try {
+      var res = await fetch('/api/download?url=' + encodeURIComponent(link));
+      var data = await res.json().catch(function(){ return null; });
+      if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || 'Gagal mengambil video.');
+
+      rtitle.textContent = data.title || 'Video siap diunduh';
+      rauthor.textContent = data.author ? '@' + String(data.author).replace(/^@/, '') : '';
+      if (data.thumbnail){ thumb.referrerPolicy = 'no-referrer'; thumb.src = data.thumbnail; thumb.hidden = false; }
+      else thumb.hidden = true;
+
+      dls.innerHTML = '';
+      data.links.forEach(function(l){
+        var a = document.createElement('a');
+        a.className = 'dl'; a.href = l.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.setAttribute('download','');
+        a.innerHTML = '<span></span><svg viewBox="0 0 24 24"><use href="#i-dl"/></svg>';
+        a.firstChild.textContent = l.label;
+        dls.appendChild(a);
+      });
+      result.classList.add('show');
+      var r = goBtn.getBoundingClientRect();
+      burst(r.left + r.width/2, r.top, 46);
+      setTimeout(function(){ result.scrollIntoView({behavior:'smooth', block:'center'}); }, 150);
+    } catch(err){
+      showError(err.message || 'Terjadi kesalahan.');
+    } finally {
+      loader.classList.remove('show'); goBtn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
